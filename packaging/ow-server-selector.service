@@ -1,0 +1,21 @@
+[Unit]
+Description=Refresh Overwatch server blocks from the Dropship list
+Wants=network-online.target
+After=network-online.target firewalld.service nftables.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/libexec/ow-server-selector-helper refresh
+User=root
+StateDirectory=ow-server-selector
+UMask=0022
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+CapabilityBoundingSet=CAP_NET_ADMIN
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
+TimeoutStartSec=120

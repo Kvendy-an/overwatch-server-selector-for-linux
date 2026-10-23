@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Overwatch Server Selector
+Comment=Choose which Overwatch servers to avoid
+Exec=/usr/local/bin/ow-server-selector
+Icon=io.github.owselector.Linux
+Terminal=false
+Categories=Game;Utility;
+Keywords=Overwatch;server;region;Dropship;

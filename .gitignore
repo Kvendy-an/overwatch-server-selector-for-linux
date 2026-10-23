@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+.venv/
+artifacts/
+build/
+dist/
+
+# Editor and agent tooling
+.vscode/
+.idea/
+.agents/
+.aws/
+.codex/

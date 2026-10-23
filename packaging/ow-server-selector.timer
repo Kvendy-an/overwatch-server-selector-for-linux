@@ -1,0 +1,11 @@
+[Unit]
+Description=Restore and automatically refresh Overwatch server blocks
+
+[Timer]
+OnBootSec=20s
+OnUnitActiveSec=1h
+RandomizedDelaySec=30s
+Unit=ow-server-selector.service
+
+[Install]
+WantedBy=timers.target

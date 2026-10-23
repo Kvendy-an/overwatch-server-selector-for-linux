@@ -1,0 +1,25 @@
+#!/bin/sh
+set -eu
+OW_APPDIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+export PYTHONHOME="$OW_APPDIR/usr"
+export PYTHONPATH="$OW_APPDIR/usr/lib/python3.12/dist-packages"
+export PYTHONNOUSERSITE=1
+export PYTHONDONTWRITEBYTECODE=1
+export LD_LIBRARY_PATH="$OW_APPDIR/usr/lib/x86_64-linux-gnu"
+export GI_TYPELIB_PATH="$OW_APPDIR/usr/lib/x86_64-linux-gnu/girepository-1.0"
+export GIO_MODULE_DIR="$OW_APPDIR/usr/lib/x86_64-linux-gnu/gio/modules"
+export GSETTINGS_SCHEMA_DIR="$OW_APPDIR/usr/share/glib-2.0/schemas"
+export FONTCONFIG_FILE="$OW_APPDIR/usr/share/fontconfig/fonts.conf"
+export XKB_CONFIG_ROOT="$OW_APPDIR/usr/share/X11/xkb"
+export XDG_DATA_DIRS="$OW_APPDIR/usr/share:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
+# The software renderer avoids bundling graphics drivers from the build machine.
+export GSK_RENDERER="${GSK_RENDERER:-cairo}"
+if [ -z "${SSL_CERT_FILE:-}" ]; then
+    for OW_CERT_FILE in /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt /etc/ssl/cert.pem "$OW_APPDIR/usr/share/ow-server-selector/ca-certificates.crt"; do
+        if [ -f "$OW_CERT_FILE" ]; then
+            export SSL_CERT_FILE="$OW_CERT_FILE"
+            break
+        fi
+    done
+fi
+exec "$OW_APPDIR/usr/bin/python3.12" -s "$OW_APPDIR/usr/share/ow-server-selector/packaging/appimage/launcher.py" "$@"

@@ -1,16 +1,16 @@
-# AppImage release 0.1.0
+# AppImage release 0.2.0
 
-Native Overwatch server selector with region presets, individual server blocks, and automatic updates from the maintained Dropship feed.
+This release enables OpenGL rendering by default, simplifies the interface, and adds server latency measurements.
 
 ## Launch
 
-Download or copy `Overwatch-Server-Selector-0.1.0-x86_64.AppImage`, then enable executable permission in your file manager's Properties → Permissions. Double-click to launch.
+Download or copy `Overwatch-Server-Selector-0.2.0-x86_64.AppImage`, then enable executable permission in your file manager's Properties → Permissions. Double-click to launch.
 
 From a terminal:
 
 ```bash
-chmod +x Overwatch-Server-Selector-0.1.0-x86_64.AppImage
-./Overwatch-Server-Selector-0.1.0-x86_64.AppImage
+chmod +x Overwatch-Server-Selector-0.2.0-x86_64.AppImage
+./Overwatch-Server-Selector-0.2.0-x86_64.AppImage
 ```
 
 The release bundles Python 3.12, GTK 4, libadwaita, PyGObject, fonts, and supporting libraries. The native GUI does not require a separate Python or GTK installation.
@@ -20,7 +20,7 @@ Supported build baseline: **x86_64 Linux with glibc 2.39 or newer**, such as Ubu
 If FUSE mounting is unavailable, the runtime supports extraction and launch:
 
 ```bash
-./Overwatch-Server-Selector-0.1.0-x86_64.AppImage --appimage-extract-and-run
+./Overwatch-Server-Selector-0.2.0-x86_64.AppImage --appimage-extract-and-run
 ```
 
 ## Enable firewall control
@@ -41,22 +41,38 @@ Run the AppImage as your regular desktop user. Use the setup button for administ
 
 Keep **Automatic updates** enabled and apply your selection to refresh saved blocks hourly, even when the AppImage is closed. See `README.md` for firewall scope, recovery, and uninstall instructions. Blocking affects all apps for your account using the selected IP ranges.
 
+## Server ping
+
+Click the signal-bars icon in the header (tooltip: **Check server ping**) to refresh latency beside each server. Ping also refreshes after the server list loads. Checks run in the background using up to three ICMP replies to each public target supplied by Dropship.
+
+The host needs `ping`: install `iputils` on Fedora/Arch or `iputils-ping` on Ubuntu/Debian. Missing ping support does not prevent server selection or firewall control. **No reply** means the target did not answer ICMP, not that the game server is offline. **Blocked** refers to the saved block selection; unblock and apply before measuring that server. In-game latency can differ. Preview mode sends no probes.
+
 ## Verify and diagnose
 
 The release includes a SHA-256 checksum file:
 
 ```bash
-sha256sum -c Overwatch-Server-Selector-0.1.0-x86_64.AppImage.sha256
+sha256sum -c Overwatch-Server-Selector-0.2.0-x86_64.AppImage.sha256
 ```
 
 Use `--preview` to open the interface with network downloads, helper installation, and firewall changes disabled. Use `self-test` to run a short, offline native interface test that exits automatically:
 
 ```bash
-./Overwatch-Server-Selector-0.1.0-x86_64.AppImage --preview
-./Overwatch-Server-Selector-0.1.0-x86_64.AppImage self-test
+./Overwatch-Server-Selector-0.2.0-x86_64.AppImage --preview
+./Overwatch-Server-Selector-0.2.0-x86_64.AppImage self-test
 ```
 
 This is an unsigned release. The bundled AppImage build tools and runtime are verified against the pinned checksums in `packaging/appimage/tools.sha256`. Runtime package versions and license texts are included inside the image under `usr/share/doc`.
+
+### Rendering and slow scrolling
+
+Version 0.2.0 defaults to the OpenGL renderer using the host's graphics drivers. The original v0.1.0 AppImage forces Cairo software rendering, which can make scrolling and animations slow, particularly on scaled displays. To enable OpenGL if needed:
+
+```bash
+GSK_RENDERER=gl ./Overwatch-Server-Selector-0.2.0-x86_64.AppImage
+```
+
+For an application-menu launcher, add `GSK_RENDERER=gl` after `env` in its desktop entry's `Exec` line. If OpenGL cannot initialize correctly on a particular system, use `GSK_RENDERER=cairo` for the software fallback. Renderer overrides affect only this app when set on its launch command.
 
 ## Build from source
 
@@ -74,7 +90,7 @@ The script uses temporary storage under `/tmp/ow-selector-containers` for Podman
 The app's source is available in the source archive and inside the AppImage. To replace a bundled LGPL library or inspect the package:
 
 ```bash
-./Overwatch-Server-Selector-0.1.0-x86_64.AppImage --appimage-extract
+./Overwatch-Server-Selector-0.2.0-x86_64.AppImage --appimage-extract
 ./squashfs-root/AppRun --preview
 ```
 

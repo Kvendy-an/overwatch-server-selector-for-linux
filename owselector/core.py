@@ -20,6 +20,7 @@ class Server:
     token: str
     title: str
     networks: tuple
+    ping: str | None = None
 
 
 def parse_feed(data):
@@ -54,7 +55,18 @@ def parse_feed(data):
                 raise ValueError("Only public server addresses are accepted")
             networks.append(network)
         seen.add(token)
-        servers.append(Server(token, title, tuple(networks)))
+        # Latency targets are optional metadata, never shell text or hostnames.
+        target = None
+        try:
+            raw_target = record.get("ping")
+            if not isinstance(raw_target, str):
+                raise ValueError("Ping target must be text")
+            address = ipaddress.ip_address(raw_target)
+            if address.is_global:
+                target = str(address)
+        except (ValueError, TypeError):
+            pass
+        servers.append(Server(token, title, tuple(networks), target))
     return tuple(servers)
 
 

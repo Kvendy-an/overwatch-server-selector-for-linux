@@ -27,6 +27,7 @@ for directory in /usr/local/lib/ow-server-selector /usr/local/lib/ow-server-sele
     install -d -o root -g root -m 755 "$directory"
 done
 install -o root -g root -m 644 owselector/*.py /usr/local/lib/ow-server-selector/owselector/
+install -o root -g root -m 644 owselector/*.svg /usr/local/lib/ow-server-selector/owselector/
 install -o root -g root -m 644 data/servers.json data/DROPSHIP-LICENSE /usr/local/lib/ow-server-selector/data/
 install -d -o root -g root -m 755 /usr/local/libexec /usr/local/bin
 install -o root -g root -m 755 packaging/ow-server-selector-helper /usr/local/libexec/

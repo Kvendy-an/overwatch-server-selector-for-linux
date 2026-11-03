@@ -74,6 +74,12 @@ Blocks remain when the app closes. To stop blocking, click **Unblock all** and a
 
 The toolbar refresh button downloads the server list for the interface. The privileged helper also independently downloads the official feed when applying a nonempty selection, falling back to its last good copy if offline. The timer downloads and reapplies saved selections without interactive authentication. If automatic updates are disabled, the timer restores the saved list without downloading a new one.
 
+## Server latency
+
+Ping appears beside each server and refreshes after the feed loads or when you click the **signal-bars icon** (tooltip: “Check server ping”). It uses the median of up to three ICMP replies to the public target supplied by Dropship, with four servers checked concurrently. Measurements run in the background without administrator authentication. Preview mode does not send probes.
+
+The host needs `ping` (Fedora/Arch: `iputils`; Ubuntu/Debian: `iputils-ping`). **No reply** means the target did not answer ICMP; it does not prove the game server is offline. **Blocked** means the saved selection blocks that server. Unblock and apply before measuring it. These are estimates to the feed's probe addresses, not guaranteed in-game latency.
+
 ## Scope and limitations
 
 - Rules match **your Linux account's outbound traffic to the selected IP ranges**, across all protocols and applications. They are not scoped to the Overwatch executable. Cloud ranges can host unrelated services, so other apps connecting to those addresses may also be affected. Other Linux user accounts are unaffected.
@@ -129,12 +135,13 @@ The uninstaller stops the timer/service, removes server blocks, and removes the 
 ```bash
 python3 -m unittest discover -s tests -v
 python3 tests/smoke_gui.py
+python3 tests/smoke_latency.py
 python3 tests/integration_nft.py
 ```
 
-The unit checks cover feed validation, rejected malicious/private ranges, both address families, account scope, update failures, removed IDs, emergency unblocking, safe staging of helper setup, and saving only after successful rule application. The GTK smoke test uses preview mode. The nftables integration test checks real rule creation, atomic replacement, and deletion inside a disposable user/network namespace and refuses to run its operations in the caller's network namespace. It requires unprivileged user namespaces to be enabled.
+The unit checks cover feed validation, rejected malicious/private ranges, both address families, account scope, update failures, removed IDs, emergency unblocking, safe staging of helper setup, and saving only after successful rule application. The GTK preview test disables network probes and firewall changes. The latency UI test uses mocked probes to check background delivery and responsiveness without network access. The nftables integration test checks real rule creation, atomic replacement, and deletion inside a disposable user/network namespace and refuses to run its operations in the caller's network namespace. It requires unprivileged user namespaces to be enabled.
 
-Validated here: 26 unit checks, native GTK preview interactions, and real nftables operations in an isolated network namespace. Service/timer syntax was checked with the helper path pointed at the source copy. Host installation, privileged authentication, reboot restoration, and actual Overwatch matchmaking have not been exercised.
+Validated for v0.2.0: 31 unit checks, native GTK preview interactions, background latency delivery, bundled signal-icon loading, and real nftables operations in an isolated network namespace. OpenGL scrolling and live ping probes were checked on an RTX 4090 with KDE Wayland; AMD and Intel were not retested for this release. Service/timer syntax was checked with the helper path pointed at the source copy. Host installation, privileged authentication, reboot restoration, and actual Overwatch matchmaking have not been exercised.
 
 ## Credits and license
 

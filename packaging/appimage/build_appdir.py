@@ -35,7 +35,7 @@ def main():
     for directory in ("glib-2.0/schemas", "icons/Adwaita", "icons/hicolor", "fonts/truetype/dejavu", "X11/xkb", "mime"):
         copy(Path("/usr/share") / directory, APPDIR / "usr/share" / directory)
     project = APPDIR / "usr/share/ow-server-selector"
-    for directory in ("owselector", "data", "packaging", "tests"):
+    for directory in ("owselector", "data", "packaging", "tests", "docs"):
         copy(ROOT / directory, project / directory)
     for name in ("install.sh", "uninstall.sh", "README.md", "RELEASE.md", "LICENSE", "THIRD_PARTY_NOTICES.md"):
         copy(ROOT / name, project / name)

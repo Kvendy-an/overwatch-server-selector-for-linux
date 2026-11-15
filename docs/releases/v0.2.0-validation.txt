@@ -1,0 +1,16 @@
+Overwatch Server Selector v0.2.0 validation
+
+Packaged runtime: Ubuntu 24.04 baseline, Python 3.12, GTK 4.14.
+
+Passed:
+- 31 unit tests: feed and public ping-target validation, isolated host command environment, median latency, timeouts, missing ping, firewall rule generation and helper/client failure handling.
+- GTK preview smoke: region presets, switches, preview safety, no ping probes, application SVG and bundled signal-bars SVG loading.
+- GTK latency smoke: background delivery, responsive main loop, saved block exclusion, row rebuilds and signal-icon button.
+- nftables integration: IPv4/IPv6 creation, atomic replacement, unblock and unrelated-table retention inside a disposable user/network namespace.
+- Shell syntax checks for installer and AppImage launch/build scripts.
+- Packaged AppImage self-test with default OpenGL rendering.
+- Visual inspection of the bundled signal-bars icon and server latency labels.
+
+Limits:
+- Host firewall installation/changes, privileged authentication, reboot restoration and Overwatch matchmaking were not tested in this release validation.
+- ICMP latency to feed-provided probe addresses may differ from in-game latency.

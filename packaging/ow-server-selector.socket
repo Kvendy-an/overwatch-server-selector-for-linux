@@ -1,0 +1,12 @@
+[Unit]
+Description=Overwatch Server Selector firewall control
+
+[Socket]
+ListenStream=/run/ow-server-selector.sock
+Accept=yes
+SocketMode=0600
+RemoveOnStop=yes
+MaxConnections=4
+
+[Install]
+WantedBy=sockets.target

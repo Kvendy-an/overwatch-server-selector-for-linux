@@ -4,12 +4,14 @@ import json
 import os
 from pathlib import Path
 import shutil
+import socket
 import subprocess
 import tempfile
 
 from .core import BUNDLE, atomic_json, fetch_feed, parse_feed, read_feed, validate_selection
 
 HELPER = Path("/usr/local/libexec/ow-server-selector-helper")
+FIREWALL_SOCKET = Path("/run/ow-server-selector.sock")
 ROOT_STATE = Path("/var/lib/ow-server-selector/state.json")
 PROJECT = Path(__file__).resolve().parent.parent
 
@@ -51,18 +53,30 @@ class Client:
         self.servers = parse_feed(data)
         return "Latest Dropship server list downloaded."
 
+    def firewall_enabled(self):
+        try:
+            grant = ROOT_STATE.parent / "authorized-uid"
+            return FIREWALL_SOCKET.is_socket() and grant.read_text().strip() == str(os.getuid())
+        except OSError:
+            return False
+
     def apply(self, tokens, auto_update):
         validate_selection(self.servers, tokens)
-        if not HELPER.exists():
+        if not self.firewall_enabled():
             raise RuntimeError("Enable firewall control using the setup button first")
-        if not shutil.which("pkexec"):
-            raise RuntimeError("Install PolicyKit (pkexec) to authenticate firewall changes")
-        result = subprocess.run(["pkexec", str(HELPER), "apply"],
-                                input=json.dumps({"blocked": tokens, "auto_update": auto_update}),
-                                text=True, capture_output=True, timeout=180, env=host_environment())
-        if result.returncode:
-            raise RuntimeError(result.stderr.strip() or "Authentication was cancelled; blocks were not changed")
-        return json.loads(result.stdout)
+        request = {"blocked": tokens, "auto_update": auto_update}
+        try:
+            with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as connection:
+                connection.settimeout(180)
+                connection.connect(str(FIREWALL_SOCKET))
+                connection.sendall(json.dumps(request).encode() + b"\n")
+                with connection.makefile("rb") as response:
+                    result = json.loads(response.readline(65537))
+        except (OSError, ValueError) as exc:
+            raise RuntimeError("Could not contact the firewall service") from exc
+        if "error" in result:
+            raise RuntimeError(result["error"])
+        return result["state"]
 
     def install_helper(self):
         if not shutil.which("pkexec"):

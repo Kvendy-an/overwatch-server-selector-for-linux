@@ -10,7 +10,7 @@ A native Linux app to avoid selected Overwatch servers. Choose a region or indiv
 
 1. Download the AppImage from [GitHub Releases](https://github.com/Kvendy-an/overwatch-server-selector-for-linux/releases), mark it executable, and open it.
 2. Click **Enable firewall control** if prompted.
-3. Choose the servers to **block**, click **Apply selection**, and authenticate before launching Overwatch. Leave at least one server available.
+3. Choose the servers to **block**, click **Apply selection** before launching Overwatch. Leave at least one server available.
 
 Click the **signal-bars icon** to refresh ping. To remove your blocks, click **Unblock all**.
 

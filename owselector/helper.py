@@ -7,6 +7,8 @@ import json
 import os
 from pathlib import Path
 import pwd
+import socket
+import struct
 import subprocess
 import sys
 
@@ -123,13 +125,42 @@ def refresh():
     return state
 
 
+def serve():
+    # systemd passes an accepted Unix socket as standard input.
+    with socket.socket(fileno=os.dup(0)) as connection:
+        connection.settimeout(5)
+        try:
+            _, uid, _ = struct.unpack("3i", connection.getsockopt(
+                socket.SOL_SOCKET, socket.SO_PEERCRED, struct.calcsize("3i")))
+            grant = STATE_DIR / "authorized-uid"
+            if uid < 1000 or (not grant.exists() or grant.read_text().strip() != str(uid)):
+                raise ValueError("Enable firewall control to authorize this Linux account")
+            with connection.makefile("rb") as request:
+                raw = request.readline(8193)
+            if len(raw) > 8192 or not raw.endswith(b"\n"):
+                raise ValueError("Invalid firewall request")
+            with (STATE_DIR / "lock").open("a") as lock:
+                fcntl.flock(lock, fcntl.LOCK_EX)
+                # Recheck after waiting for another firewall operation.
+                if grant.read_text().strip() != str(uid):
+                    raise ValueError("Firewall control authorization was revoked")
+                state = apply_request(json.loads(raw), uid)
+            response = {"state": state}
+        except Exception as exc:
+            response = {"error": str(exc)}
+        connection.sendall(json.dumps(response).encode() + b"\n")
+    return 0
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser()
-    parser.add_argument("action", choices=["apply", "refresh", "disable", "status"])
+    parser.add_argument("action", choices=["apply", "refresh", "disable", "status", "serve"])
     args = parser.parse_args(argv)
     if os.geteuid() != 0:
         parser.error("This helper requires administrator authentication")
     STATE_DIR.mkdir(mode=0o755, parents=True, exist_ok=True)
+    if args.action == "serve":
+        return serve()
     with (STATE_DIR / "lock").open("a") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX)
         try:

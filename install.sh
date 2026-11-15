@@ -12,6 +12,11 @@ if [[ ${EUID} -ne 0 ]]; then
     echo 'Run this installer with sudo: sudo ./install.sh' >&2
     exit 1
 fi
+approved_uid=${PKEXEC_UID:-${SUDO_UID:-}}
+if [[ ! $approved_uid =~ ^[1-9][0-9]{3,9}$ ]] || ! getent passwd "$approved_uid" >/dev/null; then
+    echo 'Run setup from the Linux account to authorize using pkexec or sudo.' >&2
+    exit 1
+fi
 command -v nft >/dev/null || { echo 'Install nftables first. See README.md.' >&2; exit 1; }
 command -v pkexec >/dev/null || { echo 'Install PolicyKit first. See README.md.' >&2; exit 1; }
 /usr/bin/python3 -I -c 'import sys; assert sys.version_info >= (3, 10), "Python 3.10+ required"'
@@ -38,7 +43,21 @@ if ! $helper_only; then
     install -o root -g root -m 644 packaging/io.github.owselector.Linux.svg /usr/local/share/icons/hicolor/scalable/apps/
 fi
 install -o root -g root -m 644 packaging/ow-server-selector.service packaging/ow-server-selector.timer /etc/systemd/system/
+install -o root -g root -m 644 packaging/ow-server-selector.socket packaging/ow-server-selector@.service /etc/systemd/system/
+# The authenticated caller owns the socket. The helper also checks the kernel
+# peer UID against a separate grant stored in a root-owned directory.
+install -d -o root -g root -m 755 /etc/systemd/system/ow-server-selector.socket.d
+socket_config=$(mktemp /etc/systemd/system/ow-server-selector.socket.d/.account.XXXXXX)
+printf '[Socket]\nSocketUser=%s\n' "$approved_uid" > "$socket_config"
+chmod 644 "$socket_config"
+mv -fT "$socket_config" /etc/systemd/system/ow-server-selector.socket.d/account.conf
+grant=$(mktemp /var/lib/ow-server-selector/.grant.XXXXXX)
+printf '%s\n' "$approved_uid" > "$grant"
+chmod 644 "$grant"
+mv -fT "$grant" /var/lib/ow-server-selector/authorized-uid
 systemctl daemon-reload
+systemctl enable ow-server-selector.socket
+systemctl restart ow-server-selector.socket
 systemctl enable --now ow-server-selector.timer
 if $helper_only; then
     echo 'Firewall helper and automatic-update timer installed. Return to the AppImage.'

@@ -1,0 +1,22 @@
+[Unit]
+Description=Apply Overwatch server selection
+After=firewalld.service nftables.service
+
+[Service]
+ExecStart=/usr/local/libexec/ow-server-selector-helper serve
+StandardInput=socket
+StandardOutput=null
+StandardError=journal
+User=root
+StateDirectory=ow-server-selector
+UMask=0022
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+CapabilityBoundingSet=CAP_NET_ADMIN
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
+RuntimeMaxSec=180

@@ -10,7 +10,7 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, Gio, GLib, Gtk
 
-from .client import Client, HELPER
+from .client import Client
 from .latency import measure
 
 REGIONS = {
@@ -83,7 +83,7 @@ class Selector(Adw.Application):
         header.pack_end(self.ping_button)
         self.setup_button = Gtk.Button(label="Enable firewall control")
         self.setup_button.connect("clicked", lambda *_: self.setup())
-        self.setup_button.set_visible(not HELPER.exists())
+        self.setup_button.set_visible(not self.client.firewall_enabled())
         header.pack_start(self.setup_button)
         outer.append(header)
         scroll = Gtk.ScrolledWindow(vexpand=True, hscrollbar_policy=Gtk.PolicyType.NEVER)
@@ -138,8 +138,8 @@ class Selector(Adw.Application):
         self.update_summary()
         self.window.present()
         self.refresh_button.grab_focus()
-        if not HELPER.exists():
-            self.feedback.set_text("Click Enable firewall control to install the helper and update timer. Setup requires administrator authentication.")
+        if not self.client.firewall_enabled():
+            self.feedback.set_text("Click Enable firewall control to authorize this Linux account. Setup requires administrator approval.")
         if self.preview:
             self.feed_status.set_text("Bundled Dropship list · preview mode")
         else:
@@ -320,7 +320,7 @@ class Selector(Adw.Application):
             self.feedback.set_text("Preview mode: firewall changes are disabled.")
             return
         auto_update = self.auto.get_active()
-        self.feedback.set_text("Authenticate to update firewall rules…")
+        self.feedback.set_text("Updating firewall rules…")
         def done(result, error):
             if error:
                 self.feedback.set_text(error)

@@ -40,7 +40,7 @@ Then, from this project directory:
 sudo ./install.sh
 ```
 
-Open **Overwatch Server Selector** from your app menu, or run `ow-server-selector`. Run the desktop app as your regular user. Applying a selection opens the system administrator authentication prompt. The installer creates no blocks until you apply a selection.
+Open **Overwatch Server Selector** from your app menu, or run `ow-server-selector`. Run the desktop app as your regular user. The installer authorizes the Linux account that invoked sudo. Apply and Unblock all then run without a password prompt. The installer creates no blocks until you apply a selection.
 
 Installation copies the app to `/usr/local/lib/ow-server-selector`, installs a small root helper under `/usr/local/libexec`, adds a desktop launcher, and enables `ow-server-selector.timer`. The desktop app stays unprivileged. Root-owned helper code runs through isolated Python and accepts server IDs and one update preference rather than arbitrary nftables commands.
 
@@ -50,9 +50,9 @@ Installation copies the app to `/usr/local/lib/ow-server-selector`, installs a s
 2. Choose a preferred region, or switch on each server you want to **block**. A switch that is off means that server remains available.
 3. Leave at least one server unblocked.
 4. Keep **Automatic updates** enabled to refresh applied blocks hourly. A changed preference takes effect when you apply it.
-5. Click **Apply selection** and authenticate. Then launch Overwatch through Steam/Proton or Wine.
+5. Click **Apply selection**. Then launch Overwatch through Steam/Proton or Wine.
 
-Blocks remain when the app closes. To stop blocking, click **Unblock all** and authenticate. This action works even when the saved server feed is damaged or the internet is unavailable. A successful application reports the saved selection; the UI does not independently verify live firewall state after external firewall changes.
+Blocks remain when the app closes. To stop blocking, click **Unblock all**. This action works even when the saved server feed is damaged or the internet is unavailable. A successful application reports the saved selection; the UI does not independently verify live firewall state after external firewall changes.
 
 The toolbar refresh button downloads the server list for the interface. The privileged helper also independently downloads the official feed when applying a nonempty selection, falling back to its last good copy if offline. The timer downloads and reapplies saved selections without interactive authentication. If automatic updates are disabled, the timer restores the saved list without downloading a new one.
 

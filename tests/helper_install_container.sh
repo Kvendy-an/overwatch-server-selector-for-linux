@@ -20,7 +20,10 @@ printf '{"nftables": []}\n'
 EOF
 chmod +x /usr/bin/nft /tmp/ow-selector-test-bin/*
 export PATH="/tmp/ow-selector-test-bin:$PATH"
-bash /src/install.sh --helper-only
+useradd -u 1234 ow-selector-test
+PKEXEC_UID=1234 bash /src/install.sh --helper-only
+test "$(cat /var/lib/ow-server-selector/authorized-uid)" = 1234
+grep -Fx 'SocketUser=1234' /etc/systemd/system/ow-server-selector.socket.d/account.conf
 test -x /usr/local/libexec/ow-server-selector-helper
 test ! -e /usr/local/bin/ow-server-selector
 test ! -e /usr/local/share/applications/io.github.owselector.Linux.desktop

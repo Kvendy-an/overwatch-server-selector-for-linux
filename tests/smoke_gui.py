@@ -36,6 +36,10 @@ def verify():
         assert app.blocked == {"gmec2"}
         app.apply(["gmec2"])
         assert "disabled" in app.feedback.get_text()
+        app.unblock_button.emit("clicked")
+        assert not app.blocked
+        assert all(not row.get_active() for row in app.rows.values())
+        assert "Selection cleared" in app.feedback.get_text()
         app.setup()
         assert "installation is disabled" in app.feedback.get_text()
         assert app.apply_button.get_sensitive()

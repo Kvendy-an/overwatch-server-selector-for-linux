@@ -123,11 +123,15 @@ class Selector(Adw.Application):
         self.content.append(label("Blocks persist after closing and affect all apps on your account using these IP ranges. If a match cannot connect, use Unblock all.", "muted"))
         self.feedback = label("")
         self.feedback.set_selectable(True)
-        self.content.append(self.feedback)
+        self.feedback.set_margin_start(24)
+        self.feedback.set_margin_end(24)
+        self.feedback.set_visible(False)
+        self.feedback.connect("notify::label", lambda widget, _: widget.set_visible(bool(widget.get_text())))
+        outer.append(self.feedback)
         actions = Gtk.Box(spacing=12, margin_start=24, margin_end=24, margin_top=12, margin_bottom=18)
         self.unblock_button = Gtk.Button(label="Unblock all", hexpand=True)
         self.unblock_button.add_css_class("destructive-action")
-        self.unblock_button.connect("clicked", lambda *_: self.apply([]))
+        self.unblock_button.connect("clicked", lambda *_: self.unblock_all())
         self.apply_button = Gtk.Button(label="Apply selection", hexpand=True)
         self.apply_button.add_css_class("accent-button")
         self.apply_button.connect("clicked", lambda *_: self.apply(sorted(self.blocked)))
@@ -314,6 +318,20 @@ class Selector(Adw.Application):
             self.state = self.client.state()
             self.update_feed()
         return GLib.SOURCE_CONTINUE
+
+    def unblock_all(self):
+        if self.busy:
+            return
+        self.blocked.clear()
+        self.preset.set_selected(0)
+        self.build_rows()
+        self.update_summary()
+        if self.preview:
+            self.feedback.set_text("Selection cleared. Preview mode leaves firewall rules unchanged.")
+        elif not self.state["blocked"] and not self.client.firewall_enabled():
+            self.feedback.set_text("Selection cleared. No blocks saved.")
+        else:
+            self.apply([])
 
     def apply(self, tokens):
         if self.preview:
